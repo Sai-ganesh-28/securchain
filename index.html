@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Securachain</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="navbar">
+        <a href="#profile">Profile</a>
+        <a href="#manage" class="active">Manage Documents</a>
+        <a href="#logs">Logs</a>
+        <a href="#scan">Scan QR Code</a>
+        <a href="#verify">Verify Documents</a>
+        <a href="#change">Change Password</a>
+        <a href="login.html">Logout</a>
+    </div>
+    <div class="container">
+        <h1>Manage Documents</h1>
+        <div class="toolbar">
+            <button class="btn add" onclick="showAddDocumentModal()">+ Add New Document</button>
+            <button class="btn update">Update Document</button>
+            <button class="btn view" onclick="toggleTableVisibility()">View Document</button>
+            <button class="btn delete">Delete Document</button>
+        </div>
+        <table id="documentsTable" style="display: none;">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Document</th>
+                    <th>Description</th>
+                    <th>Verification</th>
+                    <th>Date/Time</th>
+                    <th>isManipulated</th>
+                    <th>View QR Code</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>ganesh</td>
+                    <td>IEEE  (2).pdf</td>
+                    <td>this is our ieee documen</td>
+                    <td>Pending</td>
+                    <td>2024-11-20</td>
+                    <td>No</td>
+                    <td><button>View QR Code</button></td>
+                </tr>
+                <!-- Additional rows can be added as needed -->
+            </tbody>
+        </table>
+    </div>
+    <!-- Modal for adding a document -->
+    <div id="addDocumentModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2>Add Document</h2>
+            <form id="docForm">
+                <label for="docName">Name:</label>
+                <input type="text" id="docName" name="docName">
+                <label for="docType">Type:</label>
+                <select id="docType" name="docType">
+                    <option value="Text File">Text File</option>
+                    <option value="PDF">PDF</option>
+                </select>
+                <label for="docFile">Document:</label>
+                <input type="file" id="docFile" name="docFile">
+                <label for="docDesc">Description:</label>
+                <textarea id="docDesc" name="docDesc"></textarea>
+                <button type="button" onclick="addOrUpdateDocument()">Add</button>
+                <button type="button" onclick="closeModal()">Cancel</button>
+            </form>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
