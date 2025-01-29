@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scan QR Code</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+</head>
+<body>
+    <div class="navbar">
+        <a href="index.html">Back to Home</a>
+    </div>
+
+    <div class="container">
+        <h1>Scan QR Code</h1>
+        
+        <div class="scan-container">
+            <!-- Left side - QR Code Upload and Preview -->
+            <div class="qr-section">
+                <div class="upload-container">
+                    <input type="file" id="qrInput" accept="image/*" style="display: none;">
+                    <button onclick="document.getElementById('qrInput').click()" class="btn add">Choose QR Code Image</button>
+                </div>
+                <div id="preview" class="preview-box">
+                    <p class="preview-text">QR Code Preview</p>
+                </div>
+            </div>
+
+            <!-- Right side - Document Details -->
+            <div class="details-section">
+                <h2>Scanned QR Details</h2>
+                <div id="scan-result">
+                    <table class="details-table">
+                        <tr>
+                            <th>Name</th>
+                            <td id="doc-name">-</td>
+                        </tr>
+                        <tr>
+                            <th>Document</th>
+                            <td id="doc-file">-</td>
+                        </tr>
+                        <tr>
+                            <th>Type</th>
+                            <td id="doc-type">-</td>
+                        </tr>
+                        <tr>
+                            <th>Description</th>
+                            <td id="doc-desc">-</td>
+                        </tr>
+                        <tr>
+                            <th>Date/Time</th>
+                            <td id="doc-datetime">-</td>
+                        </tr>
+                        <tr>
+                            <th>Verification Status</th>
+                            <td id="doc-verification">-</td>
+                        </tr>
+                        <tr>
+                            <th>Manipulation Status</th>
+                            <td id="doc-manipulation">-</td>
+                        </tr>
+                    </table>
+                    <div id="file-actions" style="margin-top: 20px; text-align: center;">
+                        <a id="download-link" class="btn view" style="display: none;" target="_blank">Download Original Document</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('qrInput').addEventListener('change', async function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            try {
+                // Show preview
+                const preview = document.getElementById('preview');
+                const img = document.createElement('img');
+                img.style.maxWidth = '100%';
+                img.style.height = 'auto';
+                img.style.margin = '10px 0';
+
+                // Read file and create image
+                const imageUrl = await readFileAsDataURL(file);
+                img.src = imageUrl;
+                preview.innerHTML = '';
+                preview.appendChild(img);
+
+                // Wait for image to load before processing
+                img.onload = async function() {
+                    try {
+                        const code = await scanQRCode(img);
+                        if (code) {
+                            console.log('QR Code content:', code);
+                            const documentData = JSON.parse(code);
+                            displayDocumentDetails(documentData);
+                        } else {
+                            alert('No QR code found in the image');
+                        }
+                    } catch (error) {
+                        console.error('Error processing QR code:', error);
+                        alert('Error processing QR code: ' + error.message);
+                    }
+                };
+            } catch (error) {
+                console.error('Error handling file:', error);
+                alert('Error handling file: ' + error.message);
+            }
+        });
+
+        // Function to read file as data URL
+        function readFileAsDataURL(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // Function to scan QR code from image
+        async function scanQRCode(imgElement) {
+            // Create canvas and draw image
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.width = imgElement.naturalWidth;
+            canvas.height = imgElement.naturalHeight;
+            context.drawImage(imgElement, 0, 0);
+
+            // Get image data
+            const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+            
+            // Scan QR code
+            const code = jsQR(imageData.data, imageData.width, imageData.height);
+            return code ? code.data : null;
+        }
+
+        // Function to display document details
+        function displayDocumentDetails(data) {
+            console.log('Displaying document details:', data);
+            
+            // Update table cells with document data
+            document.getElementById('doc-name').textContent = data.name || 'N/A';
+            document.getElementById('doc-file').textContent = data.document || 'N/A';
+            document.getElementById('doc-type').textContent = data.type || 'N/A';
+            document.getElementById('doc-desc').textContent = data.description || 'N/A';
+            document.getElementById('doc-datetime').textContent = data.dateTime ? new Date(data.dateTime).toLocaleString() : 'N/A';
+            document.getElementById('doc-verification').textContent = data.verification || 'N/A';
+            document.getElementById('doc-manipulation').textContent = data.isManipulated || 'N/A';
+
+            // Show download link if file_url exists
+            const downloadLink = document.getElementById('download-link');
+            if (data.file_url) {
+                downloadLink.href = data.file_url;
+                downloadLink.style.display = 'inline-block';
+                downloadLink.textContent = 'Download Original Document';
+            } else {
+                downloadLink.style.display = 'none';
+            }
+        }
+    </script>
+
+    <style>
+        .scan-container {
+            display: flex;
+            gap: 30px;
+            margin-top: 20px;
+        }
+
+        .qr-section {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .details-section {
+            flex: 2;
+        }
+
+        .preview-box {
+            margin-top: 20px;
+            min-height: 300px;
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f9f9f9;
+        }
+
+        .preview-text {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .preview-box img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 4px;
+        }
+
+        .details-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+
+        .details-table th, .details-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .details-table th {
+            background-color: #f5f5f5;
+            font-weight: bold;
+            width: 200px;
+        }
+
+        .details-table tr:hover {
+            background-color: #f9f9f9;
+        }
+
+        .upload-container {
+            text-align: center;
+        }
+
+        #file-actions {
+            margin-top: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .scan-container {
+                flex-direction: column;
+            }
+            
+            .qr-section, .details-section {
+                width: 100%;
+            }
+        }
+    </style>
+</body>
+</html>

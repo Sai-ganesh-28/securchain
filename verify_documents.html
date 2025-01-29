@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Documents - Securachain</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .verification-section {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .upload-section {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding: 2rem;
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+        }
+        
+        .file-input {
+            margin: 1rem 0;
+        }
+        
+        .verification-status {
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-top: 1.5rem;
+        }
+        
+        .verification-status.verified {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .verification-status.manipulated {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .verification-status.error {
+            background-color: #fff3cd;
+            border: 1px solid #ffeeba;
+        }
+        
+        .document-details {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: rgba(255,255,255,0.8);
+            border-radius: 4px;
+        }
+        
+        .loading {
+            text-align: center;
+            color: #666;
+        }
+        
+        .warning {
+            color: #721c24;
+            font-weight: bold;
+        }
+        
+        .success {
+            color: #155724;
+            font-weight: bold;
+        }
+
+        .preview-container {
+            margin: 1rem 0;
+            max-width: 300px;
+            margin: 1rem auto;
+        }
+
+        .preview-container img {
+            max-width: 100%;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 5px;
+        }
+
+        .btn.verify {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 1rem;
+        }
+
+        .btn.verify:hover {
+            background-color: #0056b3;
+        }
+
+        .result-table {
+            width: 100%;
+            margin-top: 1rem;
+            border-collapse: collapse;
+        }
+
+        .result-table th,
+        .result-table td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .result-table th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+            width: 30%;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <a href="index.html">Home</a>
+        <a href="#profile">Profile</a>
+        <a href="#logs">Logs</a>
+        <a href="scan_qr_revert.html">Scan QR Code</a>
+        <a href="verify_documents.html" class="active">Verify Documents</a>
+        <a href="#change">Change Password</a>
+        <a href="login.html">Logout</a>
+    </div>
+
+    <div class="container">
+        <h1>Verify Documents</h1>
+        <div class="verification-section">
+            <div class="upload-section">
+                <h2>Upload QR Code for Verification</h2>
+                <p>Upload a QR code image to verify the document's authenticity</p>
+                <input type="file" id="qrInput" accept="image/*" class="file-input">
+                <div id="preview" class="preview-container"></div>
+                <button onclick="verifyQRCode()" class="btn verify">Verify QR Code</button>
+            </div>
+            <div id="verificationResult" class="verification-result">
+                <!-- Verification results will be displayed here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+    <script src="verify_documents.js"></script>
+</body>
+</html>

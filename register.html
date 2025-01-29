@@ -3,44 +3,575 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registration Page</title>
-    <link rel="stylesheet" href="register_styles.css">
+    <title>Register - Securachain</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            min-height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-attachment: fixed;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            padding: 2rem;
+            box-sizing: border-box;
+            overflow-y: auto;
+        }
+
+        .page-container {
+            width: 100%;
+            min-height: 100vh;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 2rem 0;
+            box-sizing: border-box;
+        }
+
+        .register-container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+        }
+
+        .register-left {
+            padding: 4rem;
+            background: linear-gradient(45deg, #4b6cb7 0%, #182848 100%);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .register-left h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            font-weight: 700;
+        }
+
+        .register-left p {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            opacity: 0.9;
+            margin-bottom: 2rem;
+        }
+
+        .register-features {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .register-features li {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+
+        .register-features li:before {
+            content: "✓";
+            margin-right: 1rem;
+            background: rgba(255, 255, 255, 0.2);
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+        }
+
+        .register-right {
+            padding: 4rem;
+            background: white;
+        }
+
+        .register-header {
+            text-align: left;
+            margin-bottom: 2.5rem;
+        }
+
+        .register-header h1 {
+            color: #1a237e;
+            font-size: 2.2rem;
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+
+        .register-header p {
+            color: #546e7a;
+            font-size: 1.1rem;
+        }
+
+        .register-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            color: #1a237e;
+            font-size: 0.95rem;
+        }
+
+        .form-group input {
+            padding: 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #4b6cb7;
+            box-shadow: 0 0 0 4px rgba(75, 108, 183, 0.1);
+            background: white;
+        }
+
+        .password-requirements {
+            margin-top: 0.8rem;
+            padding: 1.2rem;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border: 1px solid #e9ecef;
+        }
+
+        .requirement {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+            font-size: 0.95rem;
+            transition: color 0.3s ease;
+        }
+
+        .requirement.met {
+            color: #00897b;
+        }
+
+        .requirement.unmet {
+            color: #e53935;
+        }
+
+        .requirement::before {
+            content: "";
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: 12px;
+        }
+
+        .requirement.met::before {
+            background-color: #00897b;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z'/%3E%3C/svg%3E");
+        }
+
+        .requirement.unmet::before {
+            background-color: #e53935;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z'/%3E%3C/svg%3E");
+        }
+
+        .password-strength-meter {
+            height: 8px;
+            background-color: #f3f3f3;
+            border-radius: 4px;
+            margin-top: 1rem;
+            overflow: hidden;
+        }
+
+        .password-strength-meter div {
+            height: 100%;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            width: 0;
+        }
+
+        .strength-weak { background-color: #e53935; width: 25%; }
+        .strength-fair { background-color: #fb8c00; width: 50%; }
+        .strength-good { background-color: #43a047; width: 75%; }
+        .strength-strong { background-color: #00897b; width: 100%; }
+
+        .register-btn {
+            background: linear-gradient(45deg, #4b6cb7 0%, #182848 100%);
+            color: white;
+            padding: 1.2rem;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .register-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(75, 108, 183, 0.4);
+        }
+
+        .register-btn:active {
+            transform: translateY(0);
+        }
+
+        .login-link {
+            text-align: center;
+            margin-top: 2rem;
+            color: #546e7a;
+            font-size: 1.1rem;
+        }
+
+        .login-link a {
+            color: #4b6cb7;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+
+        .error-message, .success-message {
+            padding: 1.2rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            font-weight: 500;
+            display: none;
+        }
+
+        .error-message {
+            background-color: #ffebee;
+            border: 1px solid #ffcdd2;
+            color: #c62828;
+        }
+
+        .success-message {
+            background-color: #e8f5e9;
+            border: 1px solid #c8e6c9;
+            color: #2e7d32;
+        }
+
+        @media (max-width: 1024px) {
+            .page-container {
+                padding: 1rem 0;
+            }
+
+            .register-container {
+                grid-template-columns: 1fr;
+                max-width: 600px;
+            }
+
+            .register-left {
+                padding: 3rem;
+            }
+
+            .register-right {
+                padding: 3rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 0.5rem;
+            }
+
+            .page-container {
+                padding: 0.5rem 0;
+            }
+
+            .register-container {
+                border-radius: 10px;
+            }
+
+            .register-left, .register-right {
+                padding: 2rem;
+            }
+        }
+    </style>
 </head>
 <body>
-    <div class="register-container">
-        <h2>Registration Page</h2>
-        <form id="registrationForm">
-            <div class="form-group">
-                <label for="name">Name:</label>
-                <input type="text" id="name" name="name" required>
+    <div class="page-container">
+        <div class="register-container">
+            <div class="register-left">
+                <h2>Welcome to Securachain</h2>
+                <p>Join our secure document verification platform and experience the future of digital trust.</p>
+                <ul class="register-features">
+                    <li>Secure Document Storage</li>
+                    <li>Blockchain Verification</li>
+                    <li>Instant Document Sharing</li>
+                    <li>Real-time Updates</li>
+                </ul>
             </div>
-            <div class="form-group">
-                <label for="dob">Date of Birth:</label>
-                <input type="date" id="dob" name="dob" required>
+            <div class="register-right">
+                <div class="register-header">
+                    <h1>Create Account</h1>
+                    <p>Please fill in your details to register</p>
+                </div>
+                
+                <div id="error-message" class="error-message"></div>
+                <div id="success-message" class="success-message"></div>
+
+                <form id="registerForm" class="register-form">
+                    <div class="form-group">
+                        <label for="username">Username</label>
+                        <input type="text" id="username" name="username" required placeholder="Choose a username">
+                    </div>
+                    <div class="form-group">
+                        <label for="fullname">Full Name</label>
+                        <input type="text" id="fullname" name="fullname" required placeholder="Enter your full name">
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" required placeholder="Enter your email">
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">Phone Number</label>
+                        <input type="tel" id="phone" name="phone" required placeholder="Enter your phone number">
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" name="password" required placeholder="Create a password">
+                        <div class="password-strength"></div>
+                        <div class="password-requirements">
+                            Password must contain:
+                            <ul>
+                                <li>At least 8 characters</li>
+                                <li>At least one uppercase letter</li>
+                                <li>At least one lowercase letter</li>
+                                <li>At least one number</li>
+                                <li>At least one special character</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirm_password">Confirm Password</label>
+                        <input type="password" id="confirm_password" name="confirm_password" required placeholder="Confirm your password">
+                    </div>
+                    <div class="form-group">
+                        <label for="captcha-input">Enter Captcha</label>
+                        <div id="captcha-container" style="margin-bottom: 10px; font-size: 24px; letter-spacing: 5px; background: #f8f9fa; padding: 1rem; border-radius: 12px; text-align: center;"></div>
+                        <input type="text" id="captcha-input" name="captcha" required placeholder="Enter the captcha text above">
+                    </div>
+                    <button type="submit" class="register-btn">Create Account</button>
+                    <div class="login-link">
+                        Already have an account? <a href="login.html">Sign In</a>
+                    </div>
+                </form>
             </div>
-            <div class="form-group">
-                <label for="mobile">Mobile No.:</label>
-                <input type="tel" id="mobile" name="mobile" required>
-            </div>
-            <div class="form-group">
-                <label for="email">Email-Id:</label>
-                <input type="email" id="email" name="email" required>
-            </div>
-            <div class="form-group">
-                <label for="address">Address:</label>
-                <input type="text" id="address" name="address" required>
-            </div>
-            <div class="form-group">
-                <label for="username">UserName:</label>
-                <input type="text" id="username" name="username" required>
-            </div>
-            <div class="form-group">
-                <label for="password">Password:</label>
-                <input type="password" id="password" name="password" required>
-            </div>
-            <button type="submit">Register</button>
-        </form>
+        </div>
     </div>
-    <script src="register_script.js"></script>
+    <script>
+        let captchaText = '';
+
+        function generateCaptcha() {
+            const chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            captchaText = '';
+            for (let i = 0; i < 6; i++) {
+                captchaText += chars[Math.floor(Math.random() * chars.length)];
+            }
+            document.getElementById('captcha-container').textContent = captchaText;
+        }
+
+        function showError(message) {
+            const errorMessage = document.getElementById('error-message');
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+            console.log('Error:', message);
+        }
+
+        function showSuccess(message) {
+            const successMessage = document.getElementById('success-message');
+            successMessage.textContent = message;
+            successMessage.style.display = 'block';
+            console.log('Success:', message);
+        }
+
+        // Generate initial captcha
+        generateCaptcha();
+
+        // Password strength checker
+        function checkPasswordStrength(password) {
+            const minLength = 8;
+            const hasUpperCase = /[A-Z]/.test(password);
+            const hasLowerCase = /[a-z]/.test(password);
+            const hasNumbers = /\d/.test(password);
+            const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+
+            return password.length >= minLength && 
+                   hasUpperCase && 
+                   hasLowerCase && 
+                   hasNumbers && 
+                   hasSpecialChar;
+        }
+
+        document.getElementById('password').addEventListener('input', function() {
+            checkPasswordStrength(this.value);
+        });
+
+        document.getElementById('registerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            console.log('Form submitted');
+            
+            const formData = {
+                username: document.getElementById('username').value.trim(),
+                fullname: document.getElementById('fullname').value.trim(),
+                email: document.getElementById('email').value.trim(),
+                phone: document.getElementById('phone').value.trim(),
+                password: document.getElementById('password').value,
+                confirm_password: document.getElementById('confirm_password').value,
+                captcha: document.getElementById('captcha-input').value.trim()
+            };
+
+            console.log('Form data:', formData);
+
+            const errorMessage = document.getElementById('error-message');
+            const successMessage = document.getElementById('success-message');
+
+            // Reset messages
+            errorMessage.style.display = 'none';
+            successMessage.style.display = 'none';
+
+            // Reset all input borders
+            for (let field in formData) {
+                document.getElementById(field).style.border = '2px solid #e0e0e0';
+            }
+
+            // Check for empty fields
+            const emptyFields = [];
+            const fieldNames = {
+                username: 'Username',
+                fullname: 'Full Name',
+                email: 'Email',
+                phone: 'Phone',
+                password: 'Password',
+                confirm_password: 'Confirm Password',
+                captcha: 'Captcha'
+            };
+
+            for (let field in formData) {
+                if (!formData[field]) {
+                    emptyFields.push(fieldNames[field]);
+                    document.getElementById(field).style.border = '2px solid #dc3545';
+                }
+            }
+
+            if (emptyFields.length > 0) {
+                showError(`Please fill in the following fields: ${emptyFields.join(', ')}`);
+                return;
+            }
+
+            // Validate passwords match
+            if (formData.password !== formData.confirm_password) {
+                showError('Passwords do not match');
+                document.getElementById('password').style.border = '2px solid #dc3545';
+                document.getElementById('confirm_password').style.border = '2px solid #dc3545';
+                return;
+            }
+
+            // Validate password strength
+            if (!checkPasswordStrength(formData.password)) {
+                showError('Password does not meet the requirements');
+                document.getElementById('password').style.border = '2px solid #dc3545';
+                return;
+            }
+
+            // Validate captcha
+            if (formData.captcha !== captchaText) {
+                showError('Invalid captcha code');
+                document.getElementById('captcha-input').style.border = '2px solid #dc3545';
+                generateCaptcha();
+                document.getElementById('captcha-input').value = '';
+                return;
+            }
+
+            try {
+                console.log('Sending registration request...');
+                const requestData = {
+                    username: formData.username,
+                    fullName: formData.fullname,
+                    email: formData.email,
+                    phoneNumber: formData.phone,
+                    password: formData.password,
+                    captcha: formData.captcha,
+                    expectedCaptcha: captchaText
+                };
+                console.log('Request data:', requestData);
+
+                const response = await fetch('http://localhost:5001/api/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestData)
+                });
+
+                console.log('Response received:', response);
+                const data = await response.json();
+                console.log('Response data:', data);
+
+                if (data.success) {
+                    console.log('Registration successful');
+                    const successMessage = document.getElementById('success-message');
+                    successMessage.textContent = 'Registration successful! Redirecting to login...';
+                    successMessage.style.display = 'block';
+                    
+                    // Clear form
+                    document.getElementById('registerForm').reset();
+                    generateCaptcha(); // Generate new captcha
+                    
+                    // Reset all input borders
+                    for (let field in formData) {
+                        const element = document.getElementById(field);
+                        if (element) {
+                            element.style.border = '2px solid #e0e0e0';
+                        }
+                    }
+                    
+                    // Hide error message if any
+                    const errorMessage = document.getElementById('error-message');
+                    errorMessage.style.display = 'none';
+                    
+                    // Redirect to login page after 2 seconds
+                    setTimeout(() => {
+                        console.log('Redirecting to login page...');
+                        window.location.href = 'login.html';
+                    }, 2000);
+                } else {
+                    if (data.message) {
+                        showError(data.message);
+                    } else {
+                        showError('Registration failed. Please try again.');
+                    }
+                }
+            } catch (error) {
+                console.error('Registration error:', error);
+                showError('An error occurred during registration. Please try again.');
+            }
+        });
+    </script>
 </body>
 </html>

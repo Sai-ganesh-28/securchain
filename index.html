@@ -11,67 +11,99 @@
         <a href="#profile">Profile</a>
         <a href="#manage" class="active">Manage Documents</a>
         <a href="#logs">Logs</a>
-        <a href="#scan">Scan QR Code</a>
-        <a href="#verify">Verify Documents</a>
+        <a href="scan_qr_revert.html">Scan QR Code</a>
+        <a href="verify_documents.html">Verify Documents</a>
         <a href="#change">Change Password</a>
         <a href="login.html">Logout</a>
     </div>
+
     <div class="container">
         <h1>Manage Documents</h1>
         <div class="toolbar">
-            <button class="btn add" onclick="showAddDocumentModal()">+ Add New Document</button>
+            <button class="btn add" onclick="showAddDocumentModal()">New Document</button>
             <button class="btn update">Update Document</button>
-            <button class="btn view" onclick="toggleTableVisibility()">View Document</button>
+            <button class="btn view" onclick="toggleTableVisibility()">View Documents</button>
             <button class="btn delete">Delete Document</button>
         </div>
+
         <table id="documentsTable" style="display: none;">
             <thead>
                 <tr>
                     <th>Name</th>
                     <th>Document</th>
+                    <th>Type</th>
+                    <th>Size</th>
                     <th>Description</th>
                     <th>Verification</th>
                     <th>Date/Time</th>
-                    <th>isManipulated</th>
-                    <th>View QR Code</th>
+                    <th>Last Modified</th>
+                    <th>Status</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
-                <tr>
-                    <td>ganesh</td>
-                    <td>IEEE  (2).pdf</td>
-                    <td>this is our ieee documen</td>
-                    <td>Pending</td>
-                    <td>2024-11-20</td>
-                    <td>No</td>
-                    <td><button>View QR Code</button></td>
-                </tr>
-                <!-- Additional rows can be added as needed -->
+                <!-- Documents will be loaded dynamically -->
             </tbody>
         </table>
     </div>
-    <!-- Modal for adding a document -->
+
+    <!-- Add Document Modal -->
     <div id="addDocumentModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeModal()">&times;</span>
             <h2>Add Document</h2>
-            <form id="docForm">
-                <label for="docName">Name:</label>
-                <input type="text" id="docName" name="docName">
-                <label for="docType">Type:</label>
-                <select id="docType" name="docType">
-                    <option value="Text File">Text File</option>
-                    <option value="PDF">PDF</option>
-                </select>
-                <label for="docFile">Document:</label>
-                <input type="file" id="docFile" name="docFile">
-                <label for="docDesc">Description:</label>
-                <textarea id="docDesc" name="docDesc"></textarea>
-                <button type="button" onclick="addOrUpdateDocument()">Add</button>
-                <button type="button" onclick="closeModal()">Cancel</button>
+            <form id="docForm" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="docName">Name:</label>
+                    <input type="text" id="docName" name="docName" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="docType">Type:</label>
+                    <select id="docType" name="docType" required>
+                        <option value="">Select document type</option>
+                        <option value="Text File">Text File</option>
+                        <option value="PDF">PDF</option>
+                        <option value="Image">Image</option>
+                        <option value="Word Document">Word Document</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="docFile">Document:</label>
+                    <input type="file" id="docFile" name="docFile" required 
+                           accept=".txt,.pdf,.png,.jpg,.jpeg,.doc,.docx">
+                    <small class="file-help">Supported formats: TXT, PDF, PNG, JPG, DOC, DOCX</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="docDesc">Description:</label>
+                    <textarea id="docDesc" name="docDesc" required></textarea>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" onclick="addOrUpdateDocument()" class="btn-primary">Upload</button>
+                    <button type="button" onclick="closeModal()" class="btn-secondary">Cancel</button>
+                </div>
             </form>
         </div>
     </div>
+
+    <!-- QR Code Modal -->
+    <div id="qrCodeModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeQRModal()">&times;</span>
+            <h2>Document QR Code</h2>
+            <div id="qrcode"></div>
+            <div class="qr-actions">
+                <button onclick="downloadQR()" class="btn-primary">Download QR Code</button>
+                <button onclick="closeQRModal()" class="btn-secondary">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Required Scripts -->
+    <script src="https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
