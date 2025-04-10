@@ -55,15 +55,22 @@ async function verifyQRCode() {
         ctx.drawImage(img, 0, 0);
         
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const code = jsQR(imageData.data, imageData.width, imageData.height);
+        const code = jsQR(imageData.data, imageData.width, imageData.height, {
+            inversionAttempts: "dontInvert"
+        });
         
         if (!code) {
-            throw new Error('No QR code found in the image');
+            throw new Error('No QR code found in the image. Make sure the image is clear and contains a valid QR code.');
         }
 
         // Parse QR code data
         console.log('QR Code Data:', code.data);
-        const qrData = JSON.parse(code.data);
+        let qrData;
+        try {
+            qrData = JSON.parse(code.data);
+        } catch (error) {
+            throw new Error('Invalid QR code format. The QR code does not contain valid document data.');
+        }
         
         // Send to backend for verification
         const response = await fetch('http://localhost:5001/api/documents/verify', {

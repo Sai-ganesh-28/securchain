@@ -1,0 +1,305 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    min-height: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background-attachment: fixed;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    padding: 2rem;
+    box-sizing: border-box;
+    overflow-y: auto;
+}
+
+.page-container {
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 2rem 0;
+    box-sizing: border-box;
+}
+
+.register-container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+}
+
+.register-left {
+    padding: 4rem;
+    background: linear-gradient(45deg, #4b6cb7 0%, #182848 100%);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.register-left h2 {
+    font-size: 2.5rem;
+    margin-bottom: 1.5rem;
+    font-weight: 700;
+}
+
+.register-left p {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    opacity: 0.9;
+    margin-bottom: 2rem;
+}
+
+.register-features {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.register-features li {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}
+
+.register-features li:before {
+    content: "✓";
+    margin-right: 1rem;
+    background: rgba(255, 255, 255, 0.2);
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+}
+
+.register-right {
+    padding: 4rem;
+    background: white;
+}
+
+.register-header {
+    text-align: left;
+    margin-bottom: 2.5rem;
+}
+
+.register-header h1 {
+    color: #1a237e;
+    font-size: 2.2rem;
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+}
+
+.register-header p {
+    color: #546e7a;
+    font-size: 1.1rem;
+}
+
+.register-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form-group label {
+    font-weight: 600;
+    color: #1a237e;
+    font-size: 0.95rem;
+}
+
+.form-group input {
+    padding: 1rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: #f8f9fa;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: #4b6cb7;
+    box-shadow: 0 0 0 4px rgba(75, 108, 183, 0.1);
+    background: white;
+}
+
+.password-requirements {
+    margin-top: 0.8rem;
+    padding: 1.2rem;
+    background: #f8f9fa;
+    border-radius: 12px;
+    border: 1px solid #e9ecef;
+}
+
+.requirement {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    font-size: 0.95rem;
+    transition: color 0.3s ease;
+}
+
+.requirement.met {
+    color: #00897b;
+}
+
+.requirement.unmet {
+    color: #e53935;
+}
+
+.requirement::before {
+    content: "";
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 8px;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 12px;
+}
+
+.requirement.met::before {
+    background-color: #00897b;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z'/%3E%3C/svg%3E");
+}
+
+.requirement.unmet::before {
+    background-color: #e53935;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z'/%3E%3C/svg%3E");
+}
+
+.password-strength-meter {
+    height: 8px;
+    background-color: #f3f3f3;
+    border-radius: 4px;
+    margin-top: 1rem;
+    overflow: hidden;
+}
+
+.password-strength-meter div {
+    height: 100%;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    width: 0;
+}
+
+.strength-weak { background-color: #e53935; width: 25%; }
+.strength-fair { background-color: #fb8c00; width: 50%; }
+.strength-good { background-color: #43a047; width: 75%; }
+.strength-strong { background-color: #00897b; width: 100%; }
+
+.register-btn {
+    background: linear-gradient(45deg, #4b6cb7 0%, #182848 100%);
+    color: white;
+    padding: 1.2rem;
+    border: none;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 1.5rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.register-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(75, 108, 183, 0.4);
+}
+
+.register-btn:active {
+    transform: translateY(0);
+}
+
+.login-link {
+    text-align: center;
+    margin-top: 2rem;
+    color: #546e7a;
+    font-size: 1.1rem;
+}
+
+.login-link a {
+    color: #4b6cb7;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.login-link a:hover {
+    text-decoration: underline;
+}
+
+.error-message, .success-message {
+    padding: 1.2rem;
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+    font-weight: 500;
+    display: none;
+}
+
+.error-message {
+    background-color: #ffebee;
+    border: 1px solid #ffcdd2;
+    color: #c62828;
+}
+
+.success-message {
+    background-color: #e8f5e9;
+    border: 1px solid #c8e6c9;
+    color: #2e7d32;
+}
+
+@media (max-width: 1024px) {
+    .page-container {
+        padding: 1rem 0;
+    }
+
+    .register-container {
+        grid-template-columns: 1fr;
+        max-width: 600px;
+    }
+
+    .register-left {
+        padding: 3rem;
+    }
+
+    .register-right {
+        padding: 3rem;
+    }
+}
+
+@media (max-width: 480px) {
+    body {
+        padding: 0.5rem;
+    }
+
+    .page-container {
+        padding: 0.5rem 0;
+    }
+
+    .register-container {
+        border-radius: 10px;
+    }
+
+    .register-left, .register-right {
+        padding: 2rem;
+    }
+}

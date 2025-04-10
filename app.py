@@ -1,15 +1,24 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, redirect, session
 from flask_cors import CORS
 from werkzeug.utils import secure_filename
 import boto3
 import os
 from dotenv import load_dotenv
-from datetime import datetime
+from datetime import datetime, timedelta
 import logging
 import psycopg2
 from psycopg2.extras import DictCursor
 from flask_bcrypt import Bcrypt
 import re
+import hashlib
+import io
+from functools import wraps
+import jwt
+from google.oauth2 import id_token
+from google.auth.transport import requests as google_requests
+import json
+from oauthlib.oauth2 import WebApplicationClient
+import requests
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -25,8 +34,67 @@ if missing_vars:
     raise RuntimeError(f"Missing required environment variables: {', '.join(missing_vars)}")
 
 app = Flask(__name__, static_url_path='', static_folder='.')
+app.secret_key = os.getenv('FLASK_SECRET_KEY', 'your-secret-key-here')  # Change this in production
+app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY', 'your-jwt-secret-key')  # Change this in production
 CORS(app, resources={r"/api/*": {"origins": "*"}})
 bcrypt = Bcrypt(app)
+
+# Google OAuth Configuration
+GOOGLE_CLIENT_ID = os.getenv('GOOGLE_CLIENT_ID')
+GOOGLE_CLIENT_SECRET = os.getenv('GOOGLE_CLIENT_SECRET')
+GOOGLE_DISCOVERY_URL = "https://accounts.google.com/.well-known/openid-configuration"
+
+# OAuth 2 client setup
+client = WebApplicationClient(GOOGLE_CLIENT_ID)
+
+# JWT token required decorator
+def token_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = None
+        if 'Authorization' in request.headers:
+            token = request.headers['Authorization'].replace('Bearer ', '')
+        
+        if not token:
+            return jsonify({'message': 'Token is missing'}), 401
+            
+        try:
+            data = jwt.decode(token, app.config['JWT_SECRET_KEY'], algorithms=['HS256'])
+            current_user = get_user_by_id(data['user_id'])
+            if not current_user:
+                return jsonify({'message': 'Invalid token'}), 401
+        except jwt.ExpiredSignatureError:
+            return jsonify({'message': 'Token has expired'}), 401
+        except jwt.InvalidTokenError:
+            return jsonify({'message': 'Invalid token'}), 401
+            
+        return f(*args, **kwargs)
+    return decorated
+
+def get_user_by_id(user_id):
+    conn = get_db_connection()
+    cur = conn.cursor()
+    try:
+        cur.execute('SELECT * FROM users WHERE id = %s', (user_id,))
+        user = cur.fetchone()
+        return user
+    except Exception as e:
+        print(f"Error getting user: {e}")
+        return None
+    finally:
+        cur.close()
+        conn.close()
+
+def generate_token(user_id):
+    try:
+        payload = {
+            'exp': datetime.utcnow() + timedelta(hours=1),
+            'iat': datetime.utcnow(),
+            'user_id': user_id
+        }
+        return jwt.encode(payload, app.config['JWT_SECRET_KEY'], algorithm='HS256')
+    except Exception as e:
+        return None
 
 @app.route('/')
 def serve_index():
@@ -38,6 +106,169 @@ def serve_static(path):
         return app.send_static_file(path)
     except:
         return app.send_static_file('index.html')
+
+@app.route('/api/register', methods=['POST'])
+def register():
+    data = request.get_json()
+    
+    if not data or not all(k in data for k in ('email', 'password', 'first_name', 'last_name')):
+        return jsonify({'error': 'Missing required fields'}), 400
+    
+    email = data['email'].lower()
+    password = data['password']
+    first_name = data['first_name']
+    last_name = data['last_name']
+    
+    conn = get_db_connection()
+    cur = conn.cursor()
+    
+    try:
+        # Check if user already exists
+        cur.execute('SELECT id FROM users WHERE email = %s', (email,))
+        if cur.fetchone():
+            return jsonify({'error': 'Email already registered'}), 409
+        
+        # Hash password and create user
+        password_hash = bcrypt.generate_password_hash(password).decode('utf-8')
+        cur.execute(
+            'INSERT INTO users (email, password_hash, first_name, last_name) VALUES (%s, %s, %s, %s) RETURNING id',
+            (email, password_hash, first_name, last_name)
+        )
+        user_id = cur.fetchone()[0]
+        conn.commit()
+        
+        # Generate JWT token
+        token = generate_token(user_id)
+        
+        return jsonify({
+            'message': 'Registration successful',
+            'token': token,
+            'user': {
+                'id': user_id,
+                'email': email,
+                'first_name': first_name,
+                'last_name': last_name
+            }
+        })
+    
+    except Exception as e:
+        conn.rollback()
+        return jsonify({'error': str(e)}), 500
+    finally:
+        cur.close()
+        conn.close()
+
+@app.route('/api/login', methods=['POST'])
+def login():
+    data = request.get_json()
+    
+    if not data or not all(k in data for k in ('email', 'password')):
+        return jsonify({'error': 'Missing email or password'}), 400
+    
+    email = data['email'].lower()
+    password = data['password']
+    
+    conn = get_db_connection()
+    cur = conn.cursor()
+    
+    try:
+        cur.execute('SELECT id, password_hash, first_name, last_name FROM users WHERE email = %s', (email,))
+        user = cur.fetchone()
+        
+        if user and bcrypt.check_password_hash(user[1], password):
+            token = generate_token(user[0])
+            
+            return jsonify({
+                'message': 'Login successful',
+                'token': token,
+                'user': {
+                    'id': user[0],
+                    'email': email,
+                    'first_name': user[2],
+                    'last_name': user[3]
+                }
+            })
+        else:
+            return jsonify({'error': 'Invalid email or password'}), 401
+    
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    finally:
+        cur.close()
+        conn.close()
+
+@app.route('/api/auth/google', methods=['POST'])
+def google_auth():
+    try:
+        data = request.get_json()
+        if not data or 'token' not in data:
+            return jsonify({'error': 'No token provided'}), 400
+            
+        token = data.get('token')
+        
+        try:
+            # Verify the token
+            idinfo = id_token.verify_oauth2_token(
+                token, google_requests.Request(), GOOGLE_CLIENT_ID)
+
+            if idinfo['iss'] not in ['accounts.google.com', 'https://accounts.google.com']:
+                return jsonify({'error': 'Invalid token issuer'}), 401
+                
+            # Get user info from token
+            google_id = idinfo['sub']
+            email = idinfo['email']
+            first_name = idinfo.get('given_name', '')
+            last_name = idinfo.get('family_name', '')
+        except ValueError as e:
+            return jsonify({'error': 'Invalid token: ' + str(e)}), 401
+        
+        conn = get_db_connection()
+        cur = conn.cursor()
+        
+        try:
+            # Check if user exists
+            cur.execute('SELECT id, first_name, last_name FROM users WHERE google_id = %s OR email = %s',
+                       (google_id, email))
+            user = cur.fetchone()
+            
+            if user:
+                # Update existing user
+                user_id = user[0]
+                cur.execute('UPDATE users SET google_id = %s WHERE id = %s',
+                           (google_id, user_id))
+            else:
+                # Create new user
+                cur.execute(
+                    'INSERT INTO users (email, google_id, first_name, last_name) VALUES (%s, %s, %s, %s) RETURNING id',
+                    (email, google_id, first_name, last_name)
+                )
+                user_id = cur.fetchone()[0]
+            
+            conn.commit()
+            
+            # Generate JWT token
+            token = generate_token(user_id)
+            
+            return jsonify({
+                'message': 'Google authentication successful',
+                'token': token,
+                'user': {
+                    'id': user_id,
+                    'email': email,
+                    'first_name': first_name,
+                    'last_name': last_name
+                }
+            })
+            
+        except Exception as e:
+            conn.rollback()
+            return jsonify({'error': str(e)}), 500
+        finally:
+            cur.close()
+            conn.close()
+            
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 401
 
 # AWS configuration
 try:
@@ -71,7 +302,26 @@ def init_db():
     conn = get_db_connection()
     cur = conn.cursor()
     
+    # Drop existing users table if exists
+    cur.execute('DROP TABLE IF EXISTS users')
+    
+    # Create users table
+    cur.execute('''
+        CREATE TABLE IF NOT EXISTS users (
+            id SERIAL PRIMARY KEY,
+            email VARCHAR(255) UNIQUE NOT NULL,
+            password_hash VARCHAR(255),
+            first_name VARCHAR(100),
+            last_name VARCHAR(100),
+            google_id VARCHAR(255) UNIQUE,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+    
     # Create documents table
+    cur.execute('DROP TABLE IF EXISTS documents')
+    
+    # Create documents table with document_hash column
     cur.execute('''
         CREATE TABLE IF NOT EXISTS documents (
             id SERIAL PRIMARY KEY,
@@ -80,24 +330,14 @@ def init_db():
             file_type VARCHAR(50),
             file_size BIGINT,
             s3_path VARCHAR(512),
+            document_hash VARCHAR(64),
             upload_date TIMESTAMP,
             last_verified TIMESTAMP,
             is_manipulated BOOLEAN DEFAULT FALSE
         )
     ''')
     
-    # Create users table with additional fields
-    cur.execute('''
-        CREATE TABLE IF NOT EXISTS users (
-            id SERIAL PRIMARY KEY,
-            full_name VARCHAR(100) NOT NULL,
-            username VARCHAR(50) UNIQUE NOT NULL,
-            email VARCHAR(100) UNIQUE NOT NULL,
-            phone_number VARCHAR(20) NOT NULL,
-            password VARCHAR(255) NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    ''')
+
     
     conn.commit()
     cur.close()
@@ -138,10 +378,13 @@ def add_document():
         if not all([name, doc_type, description]):
             return jsonify({'success': False, 'message': 'Missing required fields'}), 400
 
-        # Get file size
-        file.seek(0, 2)  # Seek to end of file
-        file_size = file.tell()
-        file.seek(0)  # Reset file pointer to beginning
+        # Get file size and calculate hash
+        file_content = file.read()
+        file_size = len(file_content)
+        document_hash = hashlib.sha256(file_content).hexdigest()
+        
+        # Create BytesIO object for S3 upload
+        file_for_upload = io.BytesIO(file_content)
 
         # Secure the filename and create unique path
         filename = secure_filename(file.filename)
@@ -151,18 +394,11 @@ def add_document():
         # Upload to S3
         try:
             s3.upload_fileobj(
-                file,
+                file_for_upload,
                 BUCKET_NAME,
                 s3_file_path,
                 ExtraArgs={
-                    'ContentType': file.content_type,
-                    'Metadata': {
-                        'name': name,
-                        'type': doc_type,
-                        'description': description,
-                        'upload_date': timestamp,
-                        'file_size': str(file_size)
-                    }
+                    'ContentType': file.content_type
                 }
             )
             logger.info(f"Successfully uploaded file to S3: {s3_file_path}")
@@ -175,9 +411,9 @@ def add_document():
             conn = get_db_connection()
             cur = conn.cursor()
             cur.execute('''
-                INSERT INTO documents (name, filename, file_type, file_size, s3_path, upload_date)
-                VALUES (%s, %s, %s, %s, %s, %s)
-            ''', (name, filename, doc_type, file_size, s3_file_path, datetime.now()))
+                INSERT INTO documents (name, filename, file_type, file_size, s3_path, document_hash, upload_date)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+            ''', (name, filename, doc_type, file_size, s3_file_path, document_hash, datetime.now()))
             conn.commit()
             cur.close()
             conn.close()
@@ -201,6 +437,7 @@ def add_document():
                 'verification': 'Pending',
                 'dateTime': timestamp,
                 'isManipulated': 'No',
+                'document_hash': document_hash,
                 'file_url': file_url,
                 's3_path': s3_file_path
             }
@@ -286,6 +523,12 @@ def verify_document():
         # Compare metadata from QR code with database
         is_manipulated = False
         differences = []
+
+        # Compare document hash if available
+        if 'document_hash' in qr_data and db_record['document_hash'] != qr_data.get('document_hash'):
+            is_manipulated = True
+            differences.append('document_hash')
+            logger.warning(f"Document hash mismatch: DB={db_record['document_hash']}, QR={qr_data.get('document_hash')}")
 
         # Compare file type
         if db_record['file_type'].lower() != qr_data.get('type', '').lower():

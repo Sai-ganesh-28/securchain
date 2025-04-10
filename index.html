@@ -14,7 +14,7 @@
         <a href="scan_qr_revert.html">Scan QR Code</a>
         <a href="verify_documents.html">Verify Documents</a>
         <a href="#change">Change Password</a>
-        <a href="login.html">Logout</a>
+        <a href="#" onclick="logout()">Logout</a>
     </div>
 
     <div class="container">
@@ -104,6 +104,20 @@
 
     <!-- Required Scripts -->
     <script src="https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>
+    <script src="auth.js"></script>
     <script src="script.js"></script>
+    <script>
+        // Check authentication on page load
+        if (!checkAuth()) {
+            window.location.replace('/login.html');
+        }
+
+        // Check token expiration every minute
+        setInterval(() => {
+            if (!checkAuth()) {
+                window.location.replace('/login.html');
+            }
+        }, 60000);
+    </script>
 </body>
 </html>
