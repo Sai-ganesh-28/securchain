@@ -84,7 +84,9 @@ async function addOrUpdateDocument() {
                 dateTime: new Date().toISOString(),
                 verification: 'Pending',
                 isManipulated: 'No',
-                file_url: data.file_url // URL from server response
+                document_hash: data.data.document_hash,
+                file_url: data.data.file_url,
+                s3_path: data.data.s3_path
             };
 
             // Generate and show QR code
@@ -92,11 +94,19 @@ async function addOrUpdateDocument() {
             qrContainer.innerHTML = ''; // Clear previous QR code
             
             new QRCode(qrContainer, {
-                text: JSON.stringify(documentData),
-                width: 256,
-                height: 256,
+                text: JSON.stringify({
+                    name: documentData.name,
+                    document: documentData.document,
+                    type: documentData.type,
+                    description: documentData.description,
+                    dateTime: documentData.dateTime,
+                    document_hash: documentData.document_hash
+                }),
+                width: 300,
+                height: 300,
                 colorDark: "#000000",
-                colorLight: "#ffffff"
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
             });
 
             // Show QR code modal
@@ -179,18 +189,14 @@ function showQRCode(documentData) {
         type: documentData.type,
         description: documentData.description,
         dateTime: documentData.dateTime,
-        verification: documentData.verification,
-        isManipulated: documentData.isManipulated,
-        size: documentData.size,
-        lastModified: documentData.lastModified,
-        file_url: documentData.file_url
+        document_hash: documentData.document_hash
     });
 
     // Generate QR code
     const qr = new QRCode(qrContainer, {
         text: qrData,
-        width: 256,
-        height: 256,
+        width: 300,
+        height: 300,
         colorDark: "#000000",
         colorLight: "#ffffff",
         correctLevel: QRCode.CorrectLevel.H
